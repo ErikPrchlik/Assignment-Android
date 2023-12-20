@@ -2,6 +2,8 @@ plugins {
     id 'com.android.application'
     id 'kotlin-android'
 }
+apply plugin: 'com.android.internal.application'
+apply plugin: 'kotlin-kapt'
 
 android {
     namespace "com.goodrequest.hiring"
@@ -36,13 +38,26 @@ android {
 }
 
 dependencies {
+    //Kotlin
+    implementation "androidx.core:core-ktx:1.2.0"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation 'androidx.navigation:navigation-fragment-ktx:2.2.2'
+    implementation 'androidx.navigation:navigation-ui-ktx:2.2.2'
+
+    // ViewModel and LiveData
+    def lifecycle_version = "2.2.0"
+    implementation "androidx.lifecycle:lifecycle-extensions:$lifecycle_version"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version"
+    implementation "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle_version"
+    kapt "androidx.lifecycle:lifecycle-compiler:$lifecycle_version"
+
     // android
-    implementation 'androidx.activity:activity-ktx:1.8.1'
-    implementation 'com.google.android.material:material:1.10.0'
+    implementation 'androidx.activity:activity-ktx:1.4.0'
+    implementation 'com.google.android.material:material:1.5.0'
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.1.0"
 
     // images
-    implementation 'io.coil-kt:coil:2.4.0'
+    implementation 'io.coil-kt:coil:2.0.0'
 
     // network
     implementation 'com.squareup.okhttp3:logging-interceptor:4.11.0'
