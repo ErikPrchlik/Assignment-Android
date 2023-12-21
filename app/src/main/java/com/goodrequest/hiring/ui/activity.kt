@@ -3,12 +3,19 @@ package com.goodrequest.hiring.ui
 import android.os.Bundle
 import android.view.View.GONE
 import android.view.View.VISIBLE
+import android.view.ViewTreeObserver
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.*
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.goodrequest.hiring.PokemonApi
+import com.goodrequest.hiring.R
 import com.goodrequest.hiring.databinding.ActivityBinding
+import com.google.android.material.snackbar.Snackbar
 
 class PokemonActivity: ComponentActivity() {
+
+    var viewBinding: ActivityBinding? = null
+    var position: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -17,9 +24,13 @@ class PokemonActivity: ComponentActivity() {
         vm.load()
 
         ActivityBinding.inflate(layoutInflater).run {
+            viewBinding = this
             setContentView(root)
             refresh.setOnRefreshListener { vm.load() }
-            retry.setOnClickListener { vm.load() }
+            retry.setOnClickListener {
+                loading.visibility = VISIBLE
+                vm.load()
+            }
 
             vm.pokemons.observe(this@PokemonActivity) { result: Result<List<Pokemon>>? ->
                 result?.fold(
@@ -28,14 +39,49 @@ class PokemonActivity: ComponentActivity() {
                         val adapter = PokemonAdapter()
                         items.adapter = adapter
                         adapter.show(pokemons)
+                        refresh.isRefreshing = false
                     },
                     onFailure = {
-                        loading.visibility = GONE
-                        failure.visibility = VISIBLE
+                        if (refresh.isRefreshing) {
+                            Snackbar.make(root, R.string.refresh_fails, Snackbar.LENGTH_SHORT)
+                                .show()
+                            refresh.isRefreshing = false
+                        } else {
+                            loading.visibility = GONE
+                            failure.visibility = VISIBLE
+                        }
                     }
                 )
             }
         }
+    }
+
+    override fun onSaveInstanceState(state: Bundle) {
+        super.onSaveInstanceState(state)
+        val linearLayoutManager = (viewBinding?.items?.layoutManager) as LinearLayoutManager
+        position = linearLayoutManager.findFirstVisibleItemPosition()
+        state.putInt("Position", position)
+    }
+
+    override fun onRestoreInstanceState(state: Bundle) {
+        super.onRestoreInstanceState(state)
+        position = state.getInt("Position")
+        scrollToPosition(position)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        scrollToPosition(position)
+    }
+
+    private fun scrollToPosition(position: Int) {
+        viewBinding?.items?.viewTreeObserver?.addOnPreDrawListener(object : ViewTreeObserver.OnPreDrawListener {
+            override fun onPreDraw(): Boolean {
+                viewBinding?.items?.viewTreeObserver?.removeOnPreDrawListener(this)
+                viewBinding?.items?.scrollToPosition(position)
+                return true
+            }
+        })
     }
 }
 

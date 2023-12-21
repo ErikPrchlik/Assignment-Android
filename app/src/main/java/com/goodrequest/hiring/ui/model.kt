@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import com.goodrequest.hiring.PokemonApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import java.io.Serializable
 
 class PokemonViewModel(
     state: SavedStateHandle,
@@ -25,7 +26,7 @@ class PokemonViewModel(
 data class Pokemon(
     val id     : String,
     val name   : String,
-    val detail : PokemonDetail? = null)
+    val detail : PokemonDetail? = null): Serializable
 
 data class PokemonDetail(
     val image  : String,
