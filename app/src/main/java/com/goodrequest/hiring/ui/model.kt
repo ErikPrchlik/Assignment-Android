@@ -5,7 +5,6 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.goodrequest.hiring.PokemonApi
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import java.io.Serializable
@@ -17,9 +16,9 @@ class PokemonViewModel(
 
     val pokemons = state.getLiveData<Result<List<Pokemon>>?>("pokemons", null)
 
-    fun load() {
+    fun load(page: Int) {
         viewModelScope.launch {
-            val result = api.getPokemons(page = 1)
+            val result = api.getPokemons(page = page)
             loadDetails(result)
         }
     }
