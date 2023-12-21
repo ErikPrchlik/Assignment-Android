@@ -15,12 +15,13 @@ import com.google.android.material.snackbar.Snackbar
 class PokemonActivity: ComponentActivity() {
 
     var viewBinding: ActivityBinding? = null
+    val vm by viewModel { PokemonViewModel(it, null, PokemonApi) }
+
     var position: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val vm by viewModel { PokemonViewModel(it, null, PokemonApi) }
         vm.load()
 
         ActivityBinding.inflate(layoutInflater).run {
@@ -31,28 +32,32 @@ class PokemonActivity: ComponentActivity() {
                 loading.visibility = VISIBLE
                 vm.load()
             }
+        }
+        observePokemons()
+    }
 
-            vm.pokemons.observe(this@PokemonActivity) { result: Result<List<Pokemon>>? ->
-                result?.fold(
-                    onSuccess = { pokemons ->
-                        loading.visibility = GONE
-                        val adapter = PokemonAdapter()
-                        items.adapter = adapter
-                        adapter.show(pokemons)
-                        refresh.isRefreshing = false
-                    },
-                    onFailure = {
-                        if (refresh.isRefreshing) {
-                            Snackbar.make(root, R.string.refresh_fails, Snackbar.LENGTH_SHORT)
-                                .show()
-                            refresh.isRefreshing = false
-                        } else {
-                            loading.visibility = GONE
-                            failure.visibility = VISIBLE
-                        }
+    private fun observePokemons() {
+        vm.pokemons.observe(this@PokemonActivity) { result: Result<List<Pokemon>>? ->
+            result?.fold(
+                onSuccess = { pokemons ->
+                    viewBinding!!.loading.visibility = GONE
+                    val adapter = PokemonAdapter()
+                    viewBinding!!.items.adapter = adapter
+                    adapter.show(pokemons)
+                    viewBinding!!.refresh.isRefreshing = false
+                },
+                onFailure = {
+                    if (viewBinding!!.refresh.isRefreshing) {
+                        Snackbar
+                            .make(viewBinding!!.root, R.string.refresh_fails, Snackbar.LENGTH_SHORT)
+                            .show()
+                        viewBinding!!.refresh.isRefreshing = false
+                    } else {
+                        viewBinding!!.loading.visibility = GONE
+                        viewBinding!!.failure.visibility = VISIBLE
                     }
-                )
-            }
+                }
+            )
         }
     }
 
